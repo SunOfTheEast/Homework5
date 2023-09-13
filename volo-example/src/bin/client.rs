@@ -47,7 +47,21 @@ async fn main() {
                 key: " ".into(),
                 val: " ".into(),
             };
-            println!("requeset ping!");
+            //println!("requeset ping!");
+        }
+        "subscribe" => {
+            req = GetItemRequest {
+                op: "subscribe".into(),
+                key: args.remove(1).clone().into(),
+                val: " ".into(),
+            };
+        }
+        "publish" => {
+            req = GetItemRequest {
+                op: "publish".into(),
+                key: args.remove(1).clone().into(),
+                val: args.remove(1).clone().into(),
+            }
         }
         _ => {
             println!("ILLEGAL!");
@@ -58,33 +72,71 @@ async fn main() {
     println!("responsed!");
     match resp {
         Ok(info)=>{
-            if info.op=="set".to_string(){
-                if info.status{
-                    println!("SET SUCCESS");
-                } else {
-                    println!("ALREADY EXISTED");
+            match info.op.as_str() {
+                "set" => {
+                    match info.status {
+                        true => {
+                            println!("set success");
+                        }
+                        false => {
+                            println!("already existed");
+                        }
+                    }
+                }
+                "get" => {
+                    match info.status {
+                        true => {
+                            println!("get success, the value is {}", info.val);
+                        }
+                        false => {
+                            println!("not found");
+                        }
+                    }
+                }
+                "del" => {
+                    match info.status {
+                        true => {
+                            println!("deleted");
+                        }
+                        false => {
+                            println!("not found");
+                        }
+                    }
+                }
+                "ping" => {
+                    match info.status {
+                        true => {
+                            println!("pong!");
+                        }
+                        false => {
+                            println!("failed....");
+                        }
+                    }
+                }
+                "subscribe" => {
+                    match info.status {
+                        true => {
+                            println!("{} is published", info.val);
+                        }
+                        false => {
+                            println!("not published......");
+                        }
+                    }
+                }
+                "publish" => {
+                    match info.status {
+                        true => {
+                            println!("the number is {}", info.val);
+                        }
+                        false => {
+                            println!("not found!");
+                        }
+                    }
+                }
+                _ => {
+                    println!("invalid operation!");
                 }
             }
-            else if info.op=="get".to_string() {
-                if info.status{
-                    println!("GET SUCCESS, {}", info.val);
-                } else {
-                    println!("NOT FOUUND");
-                }
-            }else if info.op=="del".to_string() {
-                if info.status{
-                    println!("DEL SUCCESS");
-                } else {
-                    println!("NOT FOUUND");
-                }
-            }else if info.op=="ping".to_string() {
-                if info.status{
-                    println!("pong");
-                } else {
-                    println!("FAILED");
-                }
-            }
-
         },
         Err(e) => tracing::error!("{:?}", e),
     }
